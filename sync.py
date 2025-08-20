@@ -787,16 +787,20 @@ function addRow() {
   let cell = row.insertCell(0);
   cell.innerText = index;
 
-  // 源地址
+// 启用状态（checkbox，默认启用）
   cell = row.insertCell(1);
+  cell.innerHTML = `<input type="checkbox" name="enabled_${index-1}" checked>`;
+
+  // 源地址
+  cell = row.insertCell(2);
   cell.innerHTML = `<input type="text" name="source_${index-1}" value="" readonly>`;
   
   // 目标地址
-  cell = row.insertCell(2);
+  cell = row.insertCell(3);
   cell.innerHTML = `<input type="text" name="dest_${index-1}" value="" readonly>`;
   
   // 操作按钮
-  cell = row.insertCell(3);
+  cell = row.insertCell(4);
   cell.innerHTML = `
     <button type="button" onclick="openDirSelector(${index-1}, 'source')">选择源</button>
     <button type="button" onclick="openDirSelector(${index-1}, 'dest')">选择目标</button>
