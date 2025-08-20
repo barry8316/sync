@@ -288,7 +288,7 @@ def sync_worker():
     STATUS["total"] = 0
     STATUS["done"] = 0
 
-    for idx, (src_root, dst_root, is_enabled) in enumerate(zip(src_roots, dst_roots)):
+    for idx, (src_root, dst_root, is_enabled) in enumerate(zip(src_roots, dst_roots, cfg.get("enabled", [True] * len(src_roots)))):
         if STOP_FLAG:
             log(f"⏹ 已停止，跳过剩余目录")
             break
