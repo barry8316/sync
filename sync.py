@@ -288,10 +288,14 @@ def sync_worker():
     STATUS["total"] = 0
     STATUS["done"] = 0
 
-    for idx, (src_root, dst_root) in enumerate(zip(src_roots, dst_roots)):
+    for idx, (src_root, dst_root, is_enabled) in enumerate(zip(src_roots, dst_roots)):
         if STOP_FLAG:
             log(f"⏹ 已停止，跳过剩余目录")
             break
+
+        if not is_enabled:
+            log(f"⚪ 第 {idx+1} 对未启用: {src_root} -> {dst_root}，跳过")
+            continue
 
         if not src_root or not dst_root:
             log(f"⚠️ 第 {idx+1} 对源/目标路径为空，跳过")
@@ -608,9 +612,10 @@ TEMPLATE = """
     <thead>
       <tr>
         <th width="5%">序号</th>
+        <th width="5%">启用</th>
         <th width="35%">源地址</th>
         <th width="35%">目标地址</th>
-        <th width="25%">操作</th>
+        <th width="20%">操作</th>
       </tr>
     </thead>
     <tbody>
@@ -618,6 +623,10 @@ TEMPLATE = """
       {% for i, source in enumerate(config.sources) %}
         <tr>
           <td>{{ i+1 }}</td>
+          <td>
+            <input type="checkbox" name="enabled_{{i}}" value="1"
+                 {% if config.enabled and config.enabled[i] %}checked{% endif %}>
+          </td>
           <td><input type="text" name="source_{{i}}" value="{{ source }}" readonly></td> 
           <td><input type="text" name="dest_{{i}}" value="{{ config.destinations[i] }}" readonly></td>
           <td class="button-container">
@@ -975,12 +984,15 @@ def save():
     # 获取源地址和目标地址的列表
     sources = []
     destinations = []
+    enabled = []
     i = 0
     
     # 获取所有的 source_{{i}} 和 dest_{{i}} 字段
     while f"source_{i}" in request.form and f"dest_{i}" in request.form:
         sources.append(request.form[f"source_{i}"])
         destinations.append(request.form[f"dest_{i}"])
+        # 如果复选框在表单里出现，说明启用；否则就是禁用
+        enabled.append(f"enabled_{i}" in request.form)
         i += 1
 
     # 其他配置项
@@ -993,6 +1005,7 @@ def save():
     config = {
         "sources": sources,
         "destinations": destinations,
+        "enabled": enabled,   # ✅ 新增
         "bwlimit": bwlimit,
         "auto_time": auto_time,
         "parallel_tasks": parallel_tasks,
